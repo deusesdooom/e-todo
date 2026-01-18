@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-TODO - Task Management</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="loginPage" class="auth-container">
+        <div class="auth-box">
+            <h1>E-TODO</h1>
+            <p>Sign in to manage your tasks</p>
+            <div id="loginAlert"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" placeholder="your.email@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn">Sign In</button>
+            </form>
+            <div class="auth-switch">
+                Don't have an account? <a href="#" onclick="showRegister()">Sign Up</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="registerPage" class="auth-container hidden">
+        <div class="auth-box">
+            <h1>E-TODO</h1>
+            <p>Create your account</p>
+            <div id="registerAlert"></div>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" id="regFirstname" placeholder="John" required>
+                </div>
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" id="regName" placeholder="Doe" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="regEmail" placeholder="your.email@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="regPassword" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn">Sign Up</button>
+            </form>
+            <div class="auth-switch">
+                Already have an account? <a href="#" onclick="showLogin()">Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard" class="dashboard">
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">E-TODO</div>
+                <div class="theme-switcher">
+                    <button class="theme-btn active" onclick="changeTheme('dark')">🌙</button>
+                    <button class="theme-btn" onclick="changeTheme('light')">☀️</button>
+                    <button class="theme-btn" onclick="changeTheme('high-contrast')">🎯</button>
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <span id="userName">User</span>
+                <button class="btn-logout" onclick="logout()">Logout</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="dashboard-header">
+                <h2>My Tasks</h2>
+                <p class="subtitle">Manage and organize your todos efficiently</p>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>Total Tasks</h3>
+                    <div class="value" id="totalTasks">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>In Progress</h3>
+                    <div class="value" id="inProgressTasks">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Completed</h3>
+                    <div class="value" id="completedTasks">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Not Started</h3>
+                    <div class="value" id="notStartedTasks">0</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn-add" onclick="openAddModal()">
+                    <span>+</span> Add New Task
+                </button>
+                
+                <div class="view-switcher">
+                    <button class="view-btn active" onclick="changeView('grid')">📱 Grid</button>
+                    <button class="view-btn" onclick="changeView('list')">📋 List</button>
+                    <button class="view-btn" onclick="changeView('kanban')">📊 Kanban</button>
+                    <button class="view-btn" onclick="changeView('timeline')">📅 Timeline</button>
+                </div>
+                
+                <div class="filter-group">
+                    <button class="filter-btn active" onclick="filterTodos('all')">All</button>
+                    <button class="filter-btn" onclick="filterTodos('not started')">Not Started</button>
+                    <button class="filter-btn" onclick="filterTodos('todo')">Todo</button>
+                    <button class="filter-btn" onclick="filterTodos('in progress')">In Progress</button>
+                    <button class="filter-btn" onclick="filterTodos('done')">Done</button>
+                </div>
+                <input type="text" class="search-box" placeholder="Search tasks..." oninput="searchTodos(this.value)">
+            </div>
+
+            <div id="todosContainer" class="todos-grid"></div>
+        </main>
+    </div>
+
+    <div id="todoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Task</h3>
+                <button class="btn-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="todoForm">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="todoTitle" placeholder="Task title" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="todoDescription" placeholder="Task description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Due Date & Time</label>
+                    <input type="datetime-local" id="todoDueTime" required>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="todoStatus">
+                        <option value="not started">Not Started</option>
+                        <option value="todo">Todo</option>
+                        <option value="in progress">In Progress</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script> 
+</body>
+</html>
