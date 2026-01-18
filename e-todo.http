@@ -1,0 +1,114 @@
+--- E-TODO API Test Suite ---
+
+This file is used to test all backend endpoints using the REST Client VS Code extension.
+
+Ensure your Docker containers are running (docker-compose up).
+
+--- Global Variables ---
+
+@baseUrl = http://localhost:5000/api
+@testEmail = Test2@gmail.com
+@testPassword = test12
+@token = {{login.response.body.token}}
+@newTodoId = {{create_todo.response.body.id}}
+
+1. Register a New User (Optional)
+
+Creates a new user if you want a fresh one.
+
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+"email": "fresh_tester@example.com",
+"password": "testpassword123",
+"name": "Fresh",
+"firstname": "Tester"
+}
+
+2. Login to Get JWT Token
+
+!!! RUN THIS REQUEST FIRST !!!
+
+This action saves the returned token into the @token variable for all protected routes.
+
+@name = login
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+"email": "{{testEmail}}",
+"password": "{{testPassword}}"
+}
+
+3. GET Current User Information (Protected)
+
+Tests /user route and confirms token is valid. Expected Status: 200 OK.
+
+GET {{baseUrl}}/user
+Authorization: Bearer {{token}}
+
+4. GET User Todos (Protected)
+
+Expected Status: 200 OK. Should be an empty array if no tasks created yet.
+
+GET {{baseUrl}}/user/todos
+Authorization: Bearer {{token}}
+
+5. POST /todos - Create a New Task (Protected)
+
+This request creates a task and saves the resulting ID to @newTodoId.
+
+@name = create_todo
+POST {{baseUrl}}/todos
+Content-Type: application/json
+
+{
+"title": "Finalize CRUD and JWT implementation.",
+"description": "Ensure all todos routes are fully operational and secure.",
+"due_time": "2025-11-25 18:00:00",
+"status": "in progress"
+}
+Authorization: Bearer {{token}}
+
+6. GET /todos/:id - Retrieve the New Task (Protected)
+
+Uses the captured ID to retrieve the specific task. Expected Status: 200 OK.
+
+GET {{baseUrl}}/todos/{{newTodoId}}
+Authorization: Bearer {{token}}
+
+7. PUT /todos/:id - Update the Task (Protected)
+
+Updates the task title, description, and status. Expected Status: 200 OK.
+
+PUT {{baseUrl}}/todos/{{newTodoId}}
+Content-Type: application/json
+
+{
+"title": "CRUD Implementation Complete.",
+"description": "Testing all update fields for the todo.",
+"due_time": "2025-11-25 19:00:00",
+"status": "done"
+}
+Authorization: Bearer {{token}}
+
+8. GET All Todos (Confirm Update)
+
+Confirm that the task has been updated successfully.
+
+GET {{baseUrl}}/user/todos
+Authorization: Bearer {{token}}
+
+9. DELETE /todos/:id - Delete the Task (Protected)
+
+Expected Status: 200 OK with success message.
+
+DELETE {{baseUrl}}/todos/{{newTodoId}}
+Authorization: Bearer {{token}}
+
+10. Test Access Denied (Missing Token)
+
+Expected Status: 401 Unauthorized with the message: {"msg": "No token, authorization denied"}
+
+GET {{baseUrl}}/user

@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: etodo_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword123}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-etodo}
+      MYSQL_USER: ${MYSQL_USER:-etodo_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-etodo_password}
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./e-todo.sql:/docker-entrypoint-initdb.d/e-todo.sql
+    networks:
+      - etodo_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: etodo_backend
+    restart: always
+    environment:
+      MYSQL_HOST: db
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-etodo}
+      MYSQL_USER: ${MYSQL_USER:-etodo_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-etodo_password}
+      PORT: 5000
+      SECRET: ${SECRET:-change_this_secret_key_in_production_12345}
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules # Anonymous volume to prevent overwriting
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - etodo_network
+
+  # 🌟 NEW: Frontend Web Server
+  frontend:
+    image: nginx:alpine
+    container_name: etodo_frontend
+    restart: always
+    ports:
+      - "8080:80" # Expose the web application on host port 8080
+    volumes:
+      # Mount the 'backend/frontend' directory to Nginx's web root
+      - ./backend/frontend:/usr/share/nginx/html
+      # Mount the custom Nginx configuration
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+    networks:
+      - etodo_network
+
+volumes:
+  db_data:
+
+networks:
+  etodo_network:
+    driver: bridge
